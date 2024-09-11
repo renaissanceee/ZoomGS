@@ -172,7 +172,6 @@ def readColmapSceneInfo(path, images, eval, llffhold=8, get_all_cam=False):
             test_cam_infos.append(c)
         else:
             train_cam_infos.append(c)
-
     nerf_normalization = getNerfppNorm(train_cam_infos)
 
     ply_path = os.path.join(path, "sparse/0/points3D.ply")
@@ -246,11 +245,22 @@ def readCamerasFromTransforms(path, transformsfile, white_background, extension=
     return cam_infos
 
 def readNerfSyntheticInfo(path, white_background, eval, extension=".png"):
-    print("Reading Training Transforms")
-    train_cam_infos = readCamerasFromTransforms(path, "transforms_train.json", white_background, extension)
+    # print("Reading Training Transforms")
+    # train_cam_infos = readCamerasFromTransforms(path, "transforms_train.json", white_background, extension)
+    # print("Reading Test Transforms")
+    # test_cam_infos = readCamerasFromTransforms(path, "transforms_test.json", white_background, extension)
+
+    "08.17"
+    # 08.17: 只用test.json的0-29
+    # 30组里面：2:1的train/test, "updated_transforms_test_train_small.json"
+    train_cam_infos = readCamerasFromTransforms(path, "transforms_test_train_small.json", white_background, extension)
+    near_cam_infos = readCamerasFromTransforms(os.path.join(path,"near_z_2"), "updated_transforms_test_train_small.json", white_background, extension)
+    train_cam_infos = train_cam_infos+near_cam_infos
+    # -----------------------------------------------
     print("Reading Test Transforms")
-    test_cam_infos = readCamerasFromTransforms(path, "transforms_test.json", white_background, extension)
-    
+    # test_cam_infos = readCamerasFromTransforms(path, "transforms_test_test_small.json", white_background, extension)
+    test_cam_infos = readCamerasFromTransforms(os.path.join(path,"near_z_2"), "updated_transforms_test_test_small.json", white_background, extension)
+
     if not eval:
         train_cam_infos.extend(test_cam_infos)
         test_cam_infos = []

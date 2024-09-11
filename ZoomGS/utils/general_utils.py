@@ -145,7 +145,7 @@ def safe_state(silent):
     torch.manual_seed(seed)
     torch.cuda.manual_seed(seed)
     torch.cuda.manual_seed_all(seed)
-    torch.cuda.set_device(torch.device("cuda:0"))
+    # torch.cuda.set_device(torch.device("cuda"))
     np.random.seed(seed)
     random.seed(seed)
     torch.backends.cudnn.benchmark = False

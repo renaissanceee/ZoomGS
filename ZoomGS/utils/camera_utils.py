@@ -41,11 +41,11 @@ def loadCam(args, id, cam_info, resolution_scale):
     resized_image_rgb = PILtoTorch(cam_info.image, resolution)
 
 
-    if cam_info.depth is not None:
-        resized_depth_rgb = ArrayToTorch(cam_info.depth, resolution)
-    else:
-        resized_depth_rgb = None
-
+    # if cam_info.depth is not None:
+    #     resized_depth_rgb = ArrayToTorch(cam_info.depth, resolution)
+    # else:
+    #     resized_depth_rgb = None
+    resized_depth_rgb = None
     gt_image = resized_image_rgb[:3, ...]
 
     depth = resized_depth_rgb    # 设置depth

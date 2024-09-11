@@ -216,32 +216,29 @@ def render_set_linear(model_path, name, iteration, views, gaussians, pipeline, b
     uw_views = uw_views
     wide_views = wide_views[0:len(uw_views)]
 
-    generate_idxs = [3, 6]
+    generate_idxs = [3, 6] # test-view
     for idx, view in enumerate(tqdm(wide_views, desc="Rendering progress")):
         if idx in generate_idxs:
             N_C = 160
             N_I = 32  
-            # To release FI burden, x0.6 ~ 0.85 can be implemented by SR, 0.85 ~ 1.0 can beimplemented by continuous camera transition 
+            # To release FI burden, x0.6 ~ 0.85 can be implemented by SR, 0.85 ~ 1.0 can be implemented by continuous camera transition
             # Thus N_C camera encodings are set to 0., and N_I camera encodings are set to (0., 1.)
-            c_views = np.concatenate((np.zeros(N_C), np.linspace(0., 1., N_I)), 0)
+            c_views = np.concatenate((np.zeros(N_C), np.linspace(0., 1., N_I)), 0) # 0...0, 0.1...1   -->160个0//32个floater
             linear_views = generate_linear_camera(uw_views[idx], view, N_C, N_I)
 
             makedirs(os.path.join(render_path, str(idx)), exist_ok=True)
-            for ii in range(0, len(linear_views)):
+            for ii in range(0, len(linear_views)):# c=0
                 view = linear_views[ii]
                 c = c_views[ii]
-
                 rendering = render(view, gaussians, pipeline, background, info={"c":c, "target":args.target})
                 render_image = rendering["render"].clamp(0., 1.).unsqueeze(0)
-
                 torchvision.utils.save_image(render_image, os.path.join(render_path, str(idx), '%04d.png'%ii))
 
-            linear_views = linear_views[N_C:]
+            linear_views = linear_views[N_C:] # over-write:why?
             c_views = c_views[N_C:]
             for ii in range(0, len(linear_views)):
                 view = linear_views[ii]
                 c = c_views[ii]
-
                 rendering = render(view, gaussians, pipeline, background, info={"c":c, "target":args.target})
                 render_image = rendering["render"].clamp(0., 1.).unsqueeze(0)
                 torchvision.utils.save_image(render_image, os.path.join(render_path, str(idx),  '%04d.png'%(ii+N_C)))
@@ -270,7 +267,7 @@ if __name__ == "__main__":
     parser.add_argument("--quiet", action="store_true")
     parser.add_argument("--render_depth", action="store_true")
 
-    parser.add_argument("--target", default="", type=str)
+    parser.add_argument("--target", default="cx", type=str)
     args = get_combined_args(parser)
     print("Rendering " + args.model_path)
 
