@@ -18,4 +18,11 @@ source /cluster/work/cvl/jiezcao/jiameng/ZoomGS/ZoomGS/env/bin/activate
 
 python zoomgs_train.py -s zoomgs_dataset/01 -m ckpt/zoomgs/01 --iteration 30000 --eval --port 6014 --stage "uw_pretrain"
 python zoomgs_train.py -s zoomgs_dataset/01 -m ckpt/zoomgs/01 --iteration 30000 --eval --port 6014 --stage "uw2wide"
+python zoomgs_test.py -s zoomgs_dataset/01 -m ckpt/zoomgs/01 --iteration 30000 --target "cx"
 python zoomgs_render.py -m ckpt/zoomgs/01 --iteration 30000 --target "cx"
+
+# 3dgs
+python 3dgs_train.py -s zoomgs_dataset/01 -m ckpt/3dgs/01 --iteration 30000 --eval
+python 3dgs_train_far.py -s zoomgs_dataset/01 -m ckpt/3dgs_uw/01 --iteration 30000 --eval
+python 3dgs_train_near.py -s zoomgs_dataset/01 -m ckpt/3dgs_wide/01 --iteration 30000 --eval
+python 3dgs_test.py -s zoomgs_dataset/01 -m ckpt/3dgs_uw/01 --iteration 30000

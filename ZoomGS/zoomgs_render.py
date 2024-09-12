@@ -139,65 +139,6 @@ def generate_linear_camera(start_camera, end_camera, N_C, N_I):
     linear_cameras.append(end_camera)
     return linear_cameras
 
-def render_set(model_path, name, iteration, views, gaussians, pipeline, background, args, refine=None):
-    render_path = os.path.join(model_path, name, "ours_{}".format(iteration), "renders")
-    gts_path = os.path.join(model_path, name, "ours_{}".format(iteration), "gt")
-    depth_path = os.path.join(model_path, name, "ours_{}".format(iteration), "depth")
-
-    makedirs(render_path, exist_ok=True)
-    makedirs(gts_path, exist_ok=True)
-    makedirs(depth_path, exist_ok=True)
-
-    log_dir = os.path.join(model_path, name, "ours_{}".format(iteration), "metrics.txt")
-    f = open(log_dir, 'a')
-
-    uw_psnr_list = []
-    uw_ssim_list = []
-    uw_lpips_list = []
-
-    wide_psnr_list = []
-    wide_ssim_list = []
-    wide_lpips_list = []
-
-    for idx, view in enumerate(tqdm(views, desc="Rendering progress")):
-        if view.image_name.split('_')[0] == "uw":
-            rendering = render(view, gaussians, pipeline, background, info=None)
-            gt = view.original_image[0:3, :, :]
-
-            render_image = rendering["render"].clamp(0., 1.).unsqueeze(0)
-            gt = gt.clamp(0., 1.).unsqueeze(0)
-            psnr_metric = psnr(render_image, gt).mean().double().item()
-            ssim_metric = ssim(render_image, gt).mean().double().item()
-            lpips_metric = lpips(render_image, gt, net_type='vgg').mean().double().item()
-
-            uw_psnr_list.append(psnr_metric)
-            uw_ssim_list.append(ssim_metric)
-            uw_lpips_list.append(lpips_metric)
-
-        if view.image_name.split('_')[0] == "w":
-            rendering = render(view, gaussians, pipeline, background, info={"c":1.0, "target":args.target})
-            gt = view.original_image[0:3, :, :]
-
-            render_image = rendering["render"].clamp(0., 1.).unsqueeze(0)
-            gt = gt.clamp(0., 1.).unsqueeze(0)
-            psnr_metric = psnr(render_image, gt).mean().double().item()
-            ssim_metric = ssim(render_image, gt).mean().double().item()
-            lpips_metric = lpips(render_image, gt, net_type='vgg').mean().double().item()
-
-            wide_psnr_list.append(psnr_metric)
-            wide_ssim_list.append(ssim_metric)
-            wide_lpips_list.append(lpips_metric)
-
-        torchvision.utils.save_image(rendering["render"], os.path.join(render_path, view.image_name + '.png'))
-        torchvision.utils.save_image(gt, os.path.join(gts_path, view.image_name + ".png"))
-
-    print('UW: PSNR:', np.mean(np.array(uw_psnr_list)), 'SSIM:', np.mean(np.array(uw_ssim_list)), 'LPIPS:', np.mean(np.array(uw_lpips_list)))
-    print('Wide: PSNR:', np.mean(np.array(wide_psnr_list)), 'SSIM:', np.mean(np.array(wide_ssim_list)), 'LPIPS:', np.mean(np.array(wide_lpips_list)))
-    f.write('UW : PSNR:' + str(np.mean(np.array(uw_psnr_list))) + str(np.mean(np.array(uw_ssim_list))) + str(np.mean(np.array(uw_lpips_list))) +'\n')
-    f.write('Wide : PSNR:' + str(np.mean(np.array(wide_psnr_list))) + str(np.mean(np.array(wide_ssim_list))) + str(np.mean(np.array(wide_lpips_list))) +'\n')
-    f.flush()
-    f.close()
-
 
 def render_set_linear(model_path, name, iteration, views, gaussians, pipeline, background, args, refine=None):
     render_path = os.path.join(model_path, name, "zoom_sequences")
@@ -216,7 +157,11 @@ def render_set_linear(model_path, name, iteration, views, gaussians, pipeline, b
     uw_views = uw_views
     wide_views = wide_views[0:len(uw_views)]
 
-    generate_idxs = [3, 6] # test-view
+    # generate_idxs = [3, 6] # test-view
+    generate_idxs = [1]  
+    print("num_uw_views: ", len(uw_views))
+    print("num_w_views: ", len(wide_views))
+
     for idx, view in enumerate(tqdm(wide_views, desc="Rendering progress")):
         if idx in generate_idxs:
             N_C = 160
@@ -255,7 +200,9 @@ def render_sets(dataset : ModelParams, pipeline : PipelineParams, args):
         bg_color = [1,1,1] if dataset.white_background else [0, 0, 0]
         background = torch.tensor(bg_color, dtype=torch.float32, device="cuda")
 
-        render_set_linear(dataset.model_path, "train", scene.loaded_iter, scene.getTrainCameras(), gaussians, pipeline, background, args, refine)
+        # render_set_linear(dataset.model_path, "train", scene.loaded_iter, scene.getTrainCameras(), gaussians, pipeline, background, args, refine)
+        render_set_linear(dataset.model_path, "test", scene.loaded_iter, scene.getTestCameras(), gaussians, pipeline,
+                          background, args, refine)
 
 
 if __name__ == "__main__":
